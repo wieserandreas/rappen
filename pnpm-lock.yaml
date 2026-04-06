@@ -60,6 +60,9 @@ importers:
       hono:
         specifier: ^4.7.0
         version: 4.12.11
+      swissqrbill:
+        specifier: ^4.3.0
+        version: 4.3.0(typescript@5.9.3)
       zod:
         specifier: ^3.24.0
         version: 3.25.76
@@ -1628,6 +1631,21 @@ packages:
       babel-plugin-macros:
         optional: true
 
+  svg-engine@0.3.0:
+    resolution: {integrity: sha512-s172jAcwfoCcvM/6DwNBvmWN3brztHGFENCR+RU3CBJKeBxPrRlTltVxX1Je5hst782QgP8PM6U37vUR/RhPng==}
+
+  swissqrbill@4.3.0:
+    resolution: {integrity: sha512-FzSPEVWVQ3R6B0vghqi7VJCLp54AMYxCSiJGr2QzXo8OSU8JBv7XJcF67BAVAriGkuaZqVfhxuD6yRFT6WAXEA==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      pdfkit: '>=0.13.0'
+      typescript: '>=4.7.0'
+    peerDependenciesMeta:
+      pdfkit:
+        optional: true
+      typescript:
+        optional: true
+
   tailwindcss@4.2.2:
     resolution: {integrity: sha512-KWBIxs1Xb6NoLdMVqhbhgwZf2PGBpPEiwOqgI4pFIYbNTfBXiKYyWoTsXgBQ9WFg/OlhnvHaY+AEpW7wSmFo2Q==}
 
@@ -2816,6 +2834,14 @@ snapshots:
     dependencies:
       client-only: 0.0.1
       react: 19.2.4
+
+  svg-engine@0.3.0: {}
+
+  swissqrbill@4.3.0(typescript@5.9.3):
+    dependencies:
+      svg-engine: 0.3.0
+    optionalDependencies:
+      typescript: 5.9.3
 
   tailwindcss@4.2.2: {}
 
