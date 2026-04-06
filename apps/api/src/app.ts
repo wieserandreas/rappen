@@ -9,6 +9,9 @@ import { vatRoutes } from "./routes/v1/vat.js";
 import { worktimeRoutes } from "./routes/v1/worktime.js";
 import { payEquityRoutes } from "./routes/v1/pay-equity.js";
 import { contractRoutes } from "./routes/v1/contracts.js";
+import { crossBorderRoutes } from "./routes/v1/cross-border.js";
+import { companyRiskRoutes } from "./routes/v1/company-risk.js";
+import { tempStaffingRoutes } from "./routes/v1/temp-staffing.js";
 import { errorHandler } from "./middleware/error-handler.js";
 
 const app = new Hono();
@@ -38,9 +41,9 @@ app.route("/v1/worktime", worktimeRoutes);
 app.route("/v1/pay-equity", payEquityRoutes);
 app.route("/v1/contracts", contractRoutes);
 
-// Phase 3 routes (stubs)
-// app.route("/v1/cross-border", crossBorderRoutes);
-// app.route("/v1/company-risk", companyRiskRoutes);
-// app.route("/v1/temp-staffing", tempStaffingRoutes);
+// V1 API routes – Phase 3
+app.route("/v1/cross-border", crossBorderRoutes);
+app.route("/v1/company-risk", companyRiskRoutes);
+app.route("/v1/temp-staffing", tempStaffingRoutes);
 
 export { app };
