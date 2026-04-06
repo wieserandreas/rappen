@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { payrollInputSchema } from "@rappen/shared";
 import type { ApiResponse, PayrollResult } from "@rappen/shared";
+import { calculatePayroll } from "@rappen/swiss-data";
 
 export const payrollRoutes = new Hono();
 
@@ -11,16 +12,37 @@ payrollRoutes.post(
 	async (c) => {
 		const input = c.req.valid("json");
 
-		// TODO: Implement full payroll calculation engine
-		// This is the stub – Phase 1 will implement the complete logic
-		const response: ApiResponse<PayrollResult> = {
-			success: false,
-			error: {
-				code: "NOT_IMPLEMENTED",
-				message: "Lohnberechnung wird in Phase 1 implementiert.",
-			},
-		};
+		try {
+			const result = calculatePayroll(input);
 
-		return c.json(response, 501);
+			const response: ApiResponse<PayrollResult> = {
+				success: true,
+				data: result,
+				meta: {
+					calculation_date: new Date().toISOString(),
+					legal_basis: [
+						"AHVG Art. 5",
+						"AVIG Art. 3",
+						"BVG Art. 7, 8, 16",
+						"UVG Art. 91, 92",
+						"FamZG",
+					],
+					canton: input.canton,
+					year: 2026,
+				},
+			};
+
+			return c.json(response, 200);
+		} catch (err) {
+			const message = err instanceof Error ? err.message : "Berechnungsfehler";
+			const response: ApiResponse<never> = {
+				success: false,
+				error: {
+					code: "CALCULATION_ERROR",
+					message,
+				},
+			};
+			return c.json(response, 500);
+		}
 	},
 );

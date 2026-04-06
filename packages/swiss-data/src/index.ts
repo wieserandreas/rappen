@@ -6,3 +6,4 @@ export * from "./social-insurance/fak.js";
 export * from "./cantons/index.js";
 export * from "./cantons/types.js";
 export * from "./vat/rates.js";
+export * from "./payroll/calculator.js";
