@@ -14,3 +14,7 @@ export * from "./qr-bill/validator.js";
 export * from "./qr-bill/generator.js";
 export * from "./vat/calculator.js";
 export * from "./vat/saldo-rates.js";
+export * from "./worktime/calculator.js";
+export * from "./worktime/arg-rules.js";
+export * from "./pay-equity/logib.js";
+export * from "./contracts/generator.js";
