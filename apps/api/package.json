@@ -1,0 +1,27 @@
+{
+  "name": "@rappen/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "hono": "^4.7.0",
+    "@hono/node-server": "^1.14.0",
+    "@hono/zod-validator": "^0.5.0",
+    "zod": "^3.24.0",
+    "@rappen/shared": "workspace:*",
+    "@rappen/swiss-data": "workspace:*",
+    "@rappen/db": "workspace:*",
+    "decimal.js": "^10.5.0",
+    "drizzle-orm": "^0.38.0",
+    "@neondatabase/serverless": "^0.10.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "tsx": "^4.19.0"
+  }
+}

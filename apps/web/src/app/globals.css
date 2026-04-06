@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+:root {
+	--rappen-red: #ff0000;
+	--rappen-gold: #c5a55a;
+	--rappen-charcoal: #1a1a1a;
+	--rappen-white: #fafafa;
+}
