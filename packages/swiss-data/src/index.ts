@@ -12,3 +12,5 @@ export * from "./withholding-tax/tariff-codes.js";
 export * from "./withholding-tax/tariffs/loader.js";
 export * from "./qr-bill/validator.js";
 export * from "./qr-bill/generator.js";
+export * from "./vat/calculator.js";
+export * from "./vat/saldo-rates.js";
