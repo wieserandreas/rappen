@@ -45,7 +45,7 @@ const tools: Tool[] = [
 		description:
 			"Berechnen Sie die Quellensteuer mit Tarifen A–H, Kirchensteuer und 13.-Monatslohn-Anpassung.",
 		tier: 1,
-		available: false,
+		available: true,
 		category: "Personal",
 	},
 	{
@@ -63,7 +63,7 @@ const tools: Tool[] = [
 		description:
 			"Prüfen Sie Zeiterfassungsdaten gegen das Schweizer Arbeitsgesetz (ArG).",
 		tier: 2,
-		available: false,
+		available: true,
 		category: "Compliance",
 	},
 	{
@@ -72,7 +72,7 @@ const tools: Tool[] = [
 		description:
 			"Logib-konforme Lohngleichheitsanalyse per CSV-Upload. GlG-Report in 30 Sekunden.",
 		tier: 2,
-		available: false,
+		available: true,
 		category: "Compliance",
 	},
 	{
@@ -81,7 +81,7 @@ const tools: Tool[] = [
 		description:
 			"10 Schweizer Vertragstypen nach OR. Schritt-für-Schritt-Wizard, DOCX/PDF-Download.",
 		tier: 2,
-		available: false,
+		available: true,
 		category: "Recht",
 	},
 	{
@@ -90,7 +90,7 @@ const tools: Tool[] = [
 		description:
 			"DBA-Analyse mit DE/FR/IT/AT/LI, Telework-Schwellen und LEADS-Reporting.",
 		tier: 2,
-		available: false,
+		available: true,
 		category: "Personal",
 	},
 	{
@@ -99,7 +99,7 @@ const tools: Tool[] = [
 		description:
 			"Risiko-Score aus ZEFIX, SHAB und UID-Register für jedes Schweizer Unternehmen.",
 		tier: 2,
-		available: false,
+		available: true,
 		category: "Compliance",
 	},
 	{
@@ -108,7 +108,7 @@ const tools: Tool[] = [
 		description:
 			"AVG-Compliance-Check mit SECO-Lizenz, Kaution und Equal-Pay-Prüfung.",
 		tier: 2,
-		available: false,
+		available: true,
 		category: "Compliance",
 	},
 ];
