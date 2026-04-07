@@ -28,3 +28,8 @@ coverage/
 # Database
 *.db
 *.sqlite
+
+# Raw ESTV downloads (re-fetched by scripts/parse-estv-tariffs.ts setup)
+/data/qst-2026/extracted/
+/data/qst-2026/zips/
+/data/qst-2026/*.pdf

@@ -65,22 +65,22 @@ describe("E2E – All 10 tools work with realistic production input", () => {
 		expect(result.tariff_code_full).toBe("A0N");
 	});
 
-	it("Tool 2: Quellensteuer throws for unsupported cantons (gap documented)", () => {
-		// Document the gap: Quellensteuer only has ZH tariffs.
-		// All other 25 cantons should throw a clear error message.
-		const unsupportedCantons = CANTONS.filter((c) => c !== "ZH");
-		for (const canton of unsupportedCantons.slice(0, 5)) {
-			expect(() =>
-				calculateWithholdingTax({
-					canton,
-					year: 2026,
-					tariff_code: "A",
-					children: 0,
-					church: "keine",
-					gross_monthly: 8500,
-					thirteenth_salary: false,
-				}),
-			).toThrow(/Keine Quellensteuertarife/);
+	it("Tool 2: Quellensteuer works for ALL 26 cantons (ESTV-verified)", () => {
+		// All 26 cantons must be supported via ESTV-derived tariffs.
+		// Each must produce a non-negative tax amount with the correct
+		// canton-specific church-tax handling applied automatically.
+		for (const canton of CANTONS) {
+			const result = calculateWithholdingTax({
+				canton,
+				year: 2026,
+				tariff_code: "A",
+				children: 0,
+				church: "keine",
+				gross_monthly: 8500,
+				thirteenth_salary: false,
+			});
+			expect(parseFloat(result.tax_amount), `${canton} produced negative tax`).toBeGreaterThanOrEqual(0);
+			expect(result.canton).toBe(canton);
 		}
 	});
 

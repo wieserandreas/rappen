@@ -1,41 +1,57 @@
-import type { CantonCode } from "@rappen/shared";
-import type { TariffCode } from "@rappen/shared";
+import type { CantonCode, TariffCode } from "@rappen/shared";
 
 /**
- * A single tariff bracket: income range → tax rate.
- * Monthly model: brackets are for monthly income.
- * Annual model (GE, VD): brackets are for annual income.
+ * Compact bracket tuple: [from, rate, min_tax].
+ *
+ * - `from`: lower income bound in CHF (inclusive)
+ * - `rate`: effective tax rate in percent
+ * - `min_tax`: minimum tax in CHF (Mindeststeuer); 0 if not applicable
+ *
+ * The implicit upper bound is the next bracket's `from`. The last bracket
+ * extends to infinity. The list is always sorted ascending by `from`.
+ *
+ * Source: ESTV "Aufbau und Recordformate der Quellensteuer-Tarife", section 3.3.
  */
-export interface TariffBracket {
-	/** Lower bound of income (inclusive) */
-	from: number;
-	/** Upper bound of income (exclusive, null = unlimited) */
-	to: number | null;
-	/** Tax rate in % for this bracket */
-	rate: number;
+export type CompactBracket = [from: number, rate: number, min_tax: number];
+
+/**
+ * One full tariff series for a (canton, tariff group, child count, church) tuple.
+ */
+export interface CompactTariffSeries {
+	/** Tariff group letter — A, B, C, D, E, H, L, M, N, P, R, S, T, U */
+	g: string;
+	/** Number of children (0–9) */
+	c: number;
+	/** Church tax: true if "Y", false if "N" */
+	k: boolean;
+	/** Compact brackets, sorted ascending */
+	b: CompactBracket[];
 }
 
 /**
- * Complete tariff table for one canton, one tariff code, one year.
+ * Complete tariff data for one canton, one year.
  */
-export interface CantonTariff {
-	canton: CantonCode;
+export interface CantonTariffData {
+	canton: string;
 	year: number;
-	tariff_code: TariffCode;
-	children: number;
-	church: boolean;
-	model: "monthly" | "annual";
-	brackets: TariffBracket[];
+	created_at: string;
+	source: string;
+	notes: string;
+	median_salary: number | null;
+	/** Tariffs keyed by full code (e.g. "A0N", "B2Y", "H1N") */
+	tariffs: Record<string, CompactTariffSeries>;
 }
 
 /**
- * Tariff lookup key: "ZH_A_0_N" = Zürich, Code A, 0 children, no church
+ * Build the full tariff lookup key from a tariff group, child count, and church flag.
+ * Mirrors the ESTV record format (Recordart 06, field 4 "QSt-Code").
  */
-export function tariffKey(
-	canton: CantonCode,
-	code: TariffCode,
+export function buildEstvCode(
+	group: TariffCode | "L" | "M" | "N" | "P" | "R" | "S" | "T" | "U",
 	children: number,
 	church: boolean,
 ): string {
-	return `${canton}_${code}_${children}_${church ? "Y" : "N"}`;
+	const childChar = Math.max(0, Math.min(9, children)).toString();
+	const churchChar = church ? "Y" : "N";
+	return `${group}${childChar}${churchChar}`;
 }

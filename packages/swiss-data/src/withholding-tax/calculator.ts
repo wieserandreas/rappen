@@ -1,82 +1,95 @@
 import Decimal from "decimal.js";
 import type { WithholdingTaxInput, WithholdingTaxResult } from "@rappen/shared";
 import { roundTo5Rappen, toChf } from "@rappen/shared";
-import { getTariff } from "./tariffs/loader.js";
-import { buildTariffCodeString } from "./tariff-codes.js";
-import type { TariffBracket } from "./types.js";
+import { getTariff, getCantonDataMeta } from "./tariffs/loader.js";
+import type { CompactBracket, CompactTariffSeries } from "./types.js";
 import { CANTON_REGISTRY } from "../cantons/index.js";
 
 /**
- * Calculate Swiss withholding tax (Quellensteuer) for a given input.
+ * Calculate Swiss withholding tax (Quellensteuer).
  *
- * The calculation uses the effective rate method: look up the bracket
- * that matches the gross monthly income, then apply that rate to the
- * full income (not marginal/progressive).
+ * Algorithm per ESTV spec ("Mindeststeuer in Fr. / Steuer %-Satz"):
+ *   tax = max( income * rate, min_tax )
  *
- * This is how Swiss withholding tax works: the published tariff tables
- * give an EFFECTIVE rate per income bracket, not marginal rates.
+ * The lookup finds the bracket whose `from` is the largest value ≤ income.
+ *
+ * For 13th salary, the rate-determining income is monthly_gross * 13/12,
+ * but the actual tax is applied to the monthly_gross.
  */
 export function calculateWithholdingTax(input: WithholdingTaxInput): WithholdingTaxResult {
 	const churchMember = input.church !== "keine";
 	const cantonData = CANTON_REGISTRY[input.canton];
 
-	// Look up tariff
-	const tariff = getTariff(input.canton, input.tariff_code, input.children, churchMember, input.year);
+	const series = getTariff(input.canton, input.tariff_code, input.children, churchMember, input.year);
 
-	if (!tariff) {
+	if (!series) {
 		throw new Error(
-			`Keine Quellensteuertarife verfügbar für ${input.canton}, ` +
-			`Tarif ${buildTariffCodeString(input.tariff_code, input.children, churchMember)}, ` +
-			`Jahr ${input.year}. Verfügbare Kantone: ZH (weitere folgen).`
+			`Kein Quellensteuertarif gefunden für Kanton ${input.canton}, ` +
+				`Tarifcode ${input.tariff_code}, ${input.children} Kind(er), ` +
+				`Konfession ${input.church}, Jahr ${input.year}.`,
 		);
 	}
 
-	// Determine gross for lookup
-	let lookupGross = new Decimal(input.gross_monthly);
-
-	// For 13th salary: annualize, find rate, then apply to monthly
-	// The 13th salary raises the annual income → higher effective rate
-	if (input.thirteenth_salary && tariff.model === "monthly") {
-		// Method: Multiply monthly by 13/12 to get effective monthly for rate lookup
-		lookupGross = lookupGross.mul(13).div(12);
-	}
-
-	// Find matching bracket
-	const bracket = findBracket(tariff.brackets, lookupGross.toNumber());
-	const rate = new Decimal(bracket.rate);
-
-	// Apply rate to actual monthly gross (not the adjusted one)
 	const monthlyGross = new Decimal(input.gross_monthly);
-	const taxAmount = roundTo5Rappen(monthlyGross.mul(rate).div(100));
+
+	// 13th salary: rate-determining income is monthly_gross * 13/12
+	// (annual gross / 12 vs annual gross / 13). The bracket lookup uses the
+	// elevated income; the actual tax base remains the monthly gross.
+	const lookupIncome = input.thirteenth_salary
+		? monthlyGross.mul(13).div(12)
+		: monthlyGross;
+
+	const bracket = findBracket(series.b, lookupIncome.toNumber());
+
+	const rate = new Decimal(bracket[1]);
+	const minTax = new Decimal(bracket[2]);
+
+	// tax = max( monthly_gross * rate / 100, min_tax )
+	const computedTax = monthlyGross.mul(rate).div(100);
+	const taxAmount = roundTo5Rappen(Decimal.max(computedTax, minTax));
 
 	const effectiveRate = monthlyGross.gt(0)
 		? taxAmount.div(monthlyGross).mul(100)
 		: new Decimal(0);
 
+	const meta = getCantonDataMeta(input.canton);
+
 	return {
 		tax_amount: toChf(taxAmount),
 		effective_rate: effectiveRate.toFixed(2) + "%",
-		tariff_code_full: buildTariffCodeString(input.tariff_code, input.children, churchMember),
+		tariff_code_full: buildFullCodeString(series),
 		canton: input.canton,
 		year: input.year,
-		model: tariff.model,
-		legal_basis: `DBG Art. 83ff, StG ${input.canton}`,
+		model: input.canton === "GE" || input.canton === "VD" ? "annual" : "monthly",
+		legal_basis: `DBG Art. 83-86, StG ${input.canton}; ESTV-Tariffile vom ${meta.created_at || "unbekannt"}`,
 	};
 }
 
 /**
- * Find the bracket that applies to a given gross income.
- * Brackets are sorted by `from` ascending. We find the last bracket
- * where `from <= gross`.
+ * Find the bracket whose `from` is the largest value ≤ income.
+ * Uses binary search since brackets are sorted ascending.
  */
-function findBracket(brackets: TariffBracket[], gross: number): TariffBracket {
-	let matched = brackets[0];
-	for (const bracket of brackets) {
-		if (gross >= bracket.from) {
-			matched = bracket;
+function findBracket(brackets: CompactBracket[], income: number): CompactBracket {
+	if (brackets.length === 0) {
+		throw new Error("Empty bracket list");
+	}
+	if (income < brackets[0][0]) {
+		return brackets[0];
+	}
+
+	let lo = 0;
+	let hi = brackets.length - 1;
+	while (lo < hi) {
+		const mid = (lo + hi + 1) >>> 1;
+		if (brackets[mid][0] <= income) {
+			lo = mid;
 		} else {
-			break;
+			hi = mid - 1;
 		}
 	}
-	return matched;
+	return brackets[lo];
+}
+
+function buildFullCodeString(series: CompactTariffSeries): string {
+	return `${series.g}${series.c}${series.k ? "Y" : "N"}`;
 }

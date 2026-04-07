@@ -10,6 +10,7 @@ export * from "./payroll/calculator.js";
 export * from "./withholding-tax/calculator.js";
 export * from "./withholding-tax/tariff-codes.js";
 export * from "./withholding-tax/tariffs/loader.js";
+export * from "./withholding-tax/types.js";
 export * from "./qr-bill/validator.js";
 export * from "./qr-bill/generator.js";
 export * from "./vat/calculator.js";
