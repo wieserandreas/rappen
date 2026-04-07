@@ -27,6 +27,20 @@ registerTariffs(ZH_TARIFFS_2026);
 // ... etc.
 
 /**
+ * Cantons for which official 2026 withholding-tax tariffs are loaded.
+ * Adding a canton requires importing its full tariff JSON from the
+ * cantonal tax authority publication.
+ */
+export const SUPPORTED_QST_CANTONS: ReadonlyArray<CantonCode> = ["ZH"];
+
+/**
+ * Returns true if withholding tax tariffs are loaded for this canton.
+ */
+export function isQstCantonSupported(canton: CantonCode): boolean {
+	return SUPPORTED_QST_CANTONS.includes(canton);
+}
+
+/**
  * Look up a tariff by canton, code, children, and church membership.
  * Returns null if no tariff data is available for this combination.
  */

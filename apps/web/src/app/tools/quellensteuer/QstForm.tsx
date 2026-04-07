@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { CANTONS } from "@rappen/shared";
+import { SUPPORTED_QST_CANTONS } from "@rappen/swiss-data";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
@@ -16,6 +17,8 @@ const CANTON_NAMES: Record<string, string> = {
 	SO: "Solothurn", SZ: "Schwyz", TG: "Thurgau", TI: "Tessin", UR: "Uri",
 	VD: "Waadt", VS: "Wallis", ZG: "Zug", ZH: "Zürich",
 };
+
+const SUPPORTED_SET = new Set<string>(SUPPORTED_QST_CANTONS);
 
 const TARIFF_DESCRIPTIONS: Record<string, string> = {
 	A: "A — Alleinstehend ohne Kinder",
@@ -50,11 +53,20 @@ export function QstForm() {
 					</legend>
 					<div className="mt-4 grid gap-4 sm:grid-cols-2">
 						<Select label="Kanton" name="canton" defaultValue="ZH" required>
-							{CANTONS.map((c) => (
-								<option key={c} value={c}>
-									{c} – {CANTON_NAMES[c]}
-								</option>
-							))}
+							<optgroup label="Tarife verfügbar">
+								{CANTONS.filter((c) => SUPPORTED_SET.has(c)).map((c) => (
+									<option key={c} value={c}>
+										{c} – {CANTON_NAMES[c]}
+									</option>
+								))}
+							</optgroup>
+							<optgroup label="Tarife in Vorbereitung">
+								{CANTONS.filter((c) => !SUPPORTED_SET.has(c)).map((c) => (
+									<option key={c} value={c} disabled>
+										{c} – {CANTON_NAMES[c]}
+									</option>
+								))}
+							</optgroup>
 						</Select>
 						<Input
 							label="Steuerjahr"
@@ -123,9 +135,11 @@ export function QstForm() {
 				</Button>
 
 				<div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
-					<strong>Hinweis:</strong> Aktuell sind die Tarife für Zürich (ZH) verfügbar. Weitere
-					Kantone werden laufend ergänzt — die Berechnung verwendet die offiziellen
-					kantonalen Tariftabellen.
+					<strong>Tariflage 2026:</strong> Verfügbar sind aktuell die offiziellen
+					Tarife des Kantons <strong>Zürich</strong>. Weitere Kantone werden laufend
+					ergänzt, sobald die kantonalen Steuerverwaltungen die 2026-Tariftabellen
+					publizieren. Wir verwenden ausschliesslich verifizierte Originaldaten —
+					keine Schätzungen.
 				</div>
 			</form>
 
