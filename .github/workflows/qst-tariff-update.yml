@@ -1,0 +1,132 @@
+name: QST Tariff Update
+
+# This workflow checks the ESTV server for the latest withholding tax tariffs
+# and opens a pull request when an update is available.
+#
+# Schedule:
+#   - 03:00 UTC every Monday between November and April (the publication window)
+#   - Manual trigger via the GitHub UI for ad-hoc runs
+#
+# Behavior:
+#   - Runs scripts/update-qst-tariffs.ts (idempotent, hash-based)
+#   - If the SHA-256 of the ESTV ZIP changed since the last commit, the
+#     parser regenerates packages/swiss-data/data/qst-{YEAR}/*.json.gz
+#   - The full vitest suite is then run against the new data
+#   - If everything passes, a pull request is created with a summary
+#   - If nothing changed, the workflow exits successfully without a PR
+
+on:
+  schedule:
+    # Every Monday at 03:00 UTC
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      year:
+        description: "Target year (default: current year)"
+        required: false
+        type: string
+      force:
+        description: "Force re-download even if hash matches"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run QST tariff updater
+        id: update
+        env:
+          QST_YEAR: ${{ github.event.inputs.year }}
+          QST_FORCE: ${{ github.event.inputs.force == 'true' && '1' || '' }}
+        run: pnpm tsx scripts/update-qst-tariffs.ts
+
+      - name: Check update status
+        id: status
+        run: |
+          if [ "${{ steps.update.outputs.status }}" = "updated" ]; then
+            echo "needs_pr=true" >> $GITHUB_OUTPUT
+          else
+            echo "needs_pr=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run full test suite (validate new data)
+        if: steps.status.outputs.needs_pr == 'true'
+        run: pnpm exec vitest run
+
+      - name: Build all packages (validate compilation)
+        if: steps.status.outputs.needs_pr == 'true'
+        run: pnpm build
+
+      - name: Create pull request
+        if: steps.status.outputs.needs_pr == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: bot/qst-update-${{ steps.update.outputs.year }}-${{ github.run_number }}
+          base: main
+          delete-branch: true
+          commit-message: |
+            data(qst): refresh ${{ steps.update.outputs.year }} tariffs from ESTV
+
+            Source SHA-256: ${{ steps.update.outputs.hash }}
+            Cantons: ${{ steps.update.outputs.canton_count }}
+          title: "data(qst): refresh ${{ steps.update.outputs.year }} tariffs from ESTV"
+          body: |
+            ## Automated QST tariff refresh
+
+            The ESTV has published updated withholding tax tariffs for **${{ steps.update.outputs.year }}**.
+            This pull request was created automatically by the
+            [`qst-tariff-update` workflow](.github/workflows/qst-tariff-update.yml).
+
+            ### Update summary
+            | Field | Value |
+            |---|---|
+            | Year | `${{ steps.update.outputs.year }}` |
+            | Cantons updated | `${{ steps.update.outputs.canton_count }}` |
+            | Source SHA-256 | `${{ steps.update.outputs.hash }}` |
+            | Source URL | <https://www.estv2.admin.ch/qst/${{ steps.update.outputs.year }}/loehne/tar${{ steps.update.outputs.year }}txt.zip> |
+            | Triggered by | `${{ github.event_name }}` |
+
+            ### Validation
+            - [x] Hash differs from the previously committed data
+            - [x] All vitest suites pass against the new data
+            - [x] All workspace packages compile successfully
+
+            ### Review checklist
+            - [ ] Compare a few canton calculations against an external reference
+            - [ ] Verify the ESTV `created_at` date in the file metadata
+            - [ ] Spot-check the changed canton count vs. the previous version
+
+            **Source:** ESTV (Eidgenössische Steuerverwaltung), Lohnformat
+            **Generator:** [`scripts/update-qst-tariffs.ts`](scripts/update-qst-tariffs.ts)
+
+      - name: Summary (no changes)
+        if: steps.status.outputs.needs_pr == 'false'
+        run: |
+          echo "## QST tariffs are up to date" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Status: \`${{ steps.update.outputs.status }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Year: \`${{ steps.update.outputs.year }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "No pull request created — the ESTV data has not changed since the last commit." >> $GITHUB_STEP_SUMMARY

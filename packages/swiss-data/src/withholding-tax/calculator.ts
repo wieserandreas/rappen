@@ -1,7 +1,12 @@
 import Decimal from "decimal.js";
 import type { WithholdingTaxInput, WithholdingTaxResult } from "@rappen/shared";
 import { roundTo5Rappen, toChf } from "@rappen/shared";
-import { getTariff, getCantonDataMeta } from "./tariffs/loader.js";
+import {
+	getTariff,
+	getCantonDataMeta,
+	listAvailableQstYears,
+	getCurrentQstYear,
+} from "./tariffs/loader.js";
 import type { CompactBracket, CompactTariffSeries } from "./types.js";
 import { CANTON_REGISTRY } from "../cantons/index.js";
 
@@ -20,21 +25,42 @@ export function calculateWithholdingTax(input: WithholdingTaxInput): Withholding
 	const churchMember = input.church !== "keine";
 	const cantonData = CANTON_REGISTRY[input.canton];
 
-	const series = getTariff(input.canton, input.tariff_code, input.children, churchMember, input.year);
+	// Resolve target year. If the requested year is not available, fall back
+	// to the latest available year ≤ the requested year. This allows software
+	// integrations to continue working when ESTV publishes a new year while
+	// the tariff data has not yet been updated.
+	const availableYears = listAvailableQstYears();
+	let targetYear = input.year;
+	if (!availableYears.includes(targetYear)) {
+		const eligible = availableYears.filter((y) => y <= targetYear);
+		if (eligible.length === 0) {
+			throw new Error(
+				`Keine Quellensteuertarife verfügbar für Jahr ${input.year} oder früher. ` +
+					`Verfügbar: ${availableYears.join(", ") || "(keine)"}.`,
+			);
+		}
+		targetYear = eligible[eligible.length - 1];
+	}
+
+	const series = getTariff(
+		input.canton,
+		input.tariff_code,
+		input.children,
+		churchMember,
+		targetYear,
+	);
 
 	if (!series) {
 		throw new Error(
 			`Kein Quellensteuertarif gefunden für Kanton ${input.canton}, ` +
 				`Tarifcode ${input.tariff_code}, ${input.children} Kind(er), ` +
-				`Konfession ${input.church}, Jahr ${input.year}.`,
+				`Konfession ${input.church}, Jahr ${targetYear}.`,
 		);
 	}
 
 	const monthlyGross = new Decimal(input.gross_monthly);
 
 	// 13th salary: rate-determining income is monthly_gross * 13/12
-	// (annual gross / 12 vs annual gross / 13). The bracket lookup uses the
-	// elevated income; the actual tax base remains the monthly gross.
 	const lookupIncome = input.thirteenth_salary
 		? monthlyGross.mul(13).div(12)
 		: monthlyGross;
@@ -52,16 +78,16 @@ export function calculateWithholdingTax(input: WithholdingTaxInput): Withholding
 		? taxAmount.div(monthlyGross).mul(100)
 		: new Decimal(0);
 
-	const meta = getCantonDataMeta(input.canton);
+	const meta = getCantonDataMeta(input.canton, targetYear);
 
 	return {
 		tax_amount: toChf(taxAmount),
 		effective_rate: effectiveRate.toFixed(2) + "%",
 		tariff_code_full: buildFullCodeString(series),
 		canton: input.canton,
-		year: input.year,
+		year: targetYear,
 		model: input.canton === "GE" || input.canton === "VD" ? "annual" : "monthly",
-		legal_basis: `DBG Art. 83-86, StG ${input.canton}; ESTV-Tariffile vom ${meta.created_at || "unbekannt"}`,
+		legal_basis: `DBG Art. 83-86, StG ${input.canton}; ESTV-Tariffile ${targetYear} vom ${meta.created_at || "unbekannt"}`,
 	};
 }
 

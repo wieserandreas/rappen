@@ -15,20 +15,46 @@ These files are derived from the official ESTV publication:
 - **Download index:** <https://www.estv.admin.ch/estv/de/home/direkte-bundessteuer/dbst-quellensteuer/qst-tarife-loehne.html>
 - **Bulk archive:** <https://www.estv2.admin.ch/qst/2026/loehne/tar2026txt.zip>
 
-## How to regenerate
+## Automated updates
+
+Tariffs are refreshed automatically by the
+[`qst-tariff-update`](../../../../.github/workflows/qst-tariff-update.yml)
+GitHub Action, which runs **every Monday at 03:00 UTC** during the publication
+window. The action:
+
+1. Calls `scripts/update-qst-tariffs.ts`, which downloads the bulk archive
+   from the ESTV server
+2. Compares the SHA-256 of the new archive against `.source-hash` in this
+   directory
+3. If unchanged: exits with no action
+4. If changed: regenerates all `*.json.gz` files, runs the full test suite,
+   and opens a pull request with a summary
+
+Manual trigger via GitHub UI: **Actions → QST Tariff Update → Run workflow**.
+
+## How to regenerate locally
 
 ```bash
-# 1. Download and extract the official ESTV archive
-mkdir -p data/qst-2026/zips data/qst-2026/extracted
-curl -sSL -o data/qst-2026/zips/tar2026txt.zip \
-  "https://www.estv2.admin.ch/qst/2026/loehne/tar2026txt.zip"
-unzip -o data/qst-2026/zips/tar2026txt.zip -d data/qst-2026/extracted/
+# Single command — handles download, hash check, extract, parse
+pnpm tsx scripts/update-qst-tariffs.ts
 
-# 2. Run the parser
-pnpm tsx scripts/parse-estv-tariffs.ts
+# Explicit year
+pnpm tsx scripts/update-qst-tariffs.ts 2027
+
+# Force re-download even if hash matches
+QST_FORCE=1 pnpm tsx scripts/update-qst-tariffs.ts
 ```
 
-This produces one `{CANTON}.json.gz` file per canton in this directory.
+The lower-level parser can also be invoked directly if you have manually
+downloaded and extracted the ESTV ZIP into `data/qst-{YEAR}/extracted/`:
+
+```bash
+pnpm tsx scripts/parse-estv-tariffs.ts            # current year
+pnpm tsx scripts/parse-estv-tariffs.ts 2027       # explicit year
+```
+
+Either workflow produces one `{CANTON}.json.gz` file per canton in this
+directory plus a `.source-hash` file used for change detection.
 
 ## File format
 
