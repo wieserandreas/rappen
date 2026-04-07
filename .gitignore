@@ -33,3 +33,4 @@ coverage/
 /data/qst-2026/extracted/
 /data/qst-2026/zips/
 /data/qst-2026/*.pdf
+.vercel
