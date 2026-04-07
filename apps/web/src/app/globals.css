@@ -1,8 +1,78 @@
 @import "tailwindcss";
 
-:root {
-	--rappen-red: #ff0000;
-	--rappen-gold: #c5a55a;
-	--rappen-charcoal: #1a1a1a;
-	--rappen-white: #fafafa;
+@theme {
+	--color-rappen-charcoal: #0a0a0a;
+	--color-rappen-charcoal-light: #1a1a1a;
+	--color-rappen-charcoal-lighter: #2a2a2a;
+	--color-rappen-white: #fafafa;
+	--color-rappen-cream: #f5f4f0;
+	--color-rappen-gold: #c5a55a;
+	--color-rappen-gold-light: #d4b76a;
+	--color-rappen-red: #dc0000;
+	--color-rappen-border: #e5e5e3;
+	--color-rappen-muted: #6b6b6b;
+	--color-rappen-muted-dark: #9a9a9a;
+
+	--font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	--font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", monospace;
+
+	--radius-sm: 4px;
+	--radius-md: 6px;
+	--radius-lg: 10px;
+}
+
+* {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+body {
+	background: var(--color-rappen-cream);
+	color: var(--color-rappen-charcoal);
+	font-feature-settings: "ss01", "cv11";
+}
+
+/* Tabular numbers for all monetary values and data tables */
+.tabular-nums,
+[data-tabular] {
+	font-variant-numeric: tabular-nums;
+	font-feature-settings: "tnum";
+}
+
+/* Focus styles - high contrast, accessible */
+*:focus-visible {
+	outline: 2px solid var(--color-rappen-charcoal);
+	outline-offset: 2px;
+	border-radius: 4px;
+}
+
+/* Selection */
+::selection {
+	background: var(--color-rappen-gold);
+	color: var(--color-rappen-charcoal);
+}
+
+/* Smooth transitions for interactive elements */
+button, a, input, select, textarea {
+	transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+/* Subtle scrollbar */
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+::-webkit-scrollbar-thumb {
+	background: rgba(0, 0, 0, 0.15);
+	border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: rgba(0, 0, 0, 0.25);
 }
