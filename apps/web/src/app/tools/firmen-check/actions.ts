@@ -10,10 +10,21 @@ export interface CompanyRiskActionResult {
 }
 
 /**
- * ZEFIX REST API – öffentlich, kostenlos, kein API-Key nötig.
- * https://www.zefix.admin.ch/ZefixPublicREST/
+ * ZEFIX Public REST API – requires Basic Auth credentials.
+ * Register for free at: https://www.zefix.admin.ch
+ *
+ * Env vars needed:
+ *   ZEFIX_API_USER — username from ZEFIX registration
+ *   ZEFIX_API_PASSWORD — password from ZEFIX registration
  */
-const ZEFIX_BASE = "https://www.zefix.admin.ch/ZefixREST/api/v1";
+const ZEFIX_BASE = "https://www.zefix.admin.ch/ZefixPublicREST/api/v1";
+
+function getZefixAuthHeader(): string | null {
+	const user = process.env.ZEFIX_API_USER;
+	const pass = process.env.ZEFIX_API_PASSWORD;
+	if (!user || !pass) return null;
+	return "Basic " + Buffer.from(`${user}:${pass}`).toString("base64");
+}
 
 interface ZefixCompany {
 	uid: string;
@@ -36,18 +47,25 @@ interface ZefixCompany {
  * Falls back to UID-Register format parsing if the query looks like a UID.
  */
 async function searchZefix(query: string): Promise<ZefixCompany | null> {
-	const normalizedQuery = query.trim();
+	const auth = getZefixAuthHeader();
+	if (!auth) {
+		return null; // No credentials configured
+	}
 
-	// Check if query is a UID format (CHE-xxx.xxx.xxx)
+	const normalizedQuery = query.trim();
 	const uidClean = normalizedQuery.replace(/[\s.-]/g, "").toUpperCase();
 	const isUid = /^CHE\d{9}$/.test(uidClean);
 
+	const baseHeaders: Record<string, string> = {
+		Accept: "application/json",
+		Authorization: auth,
+	};
+
 	try {
 		if (isUid) {
-			// Search by UID
 			const res = await fetch(`${ZEFIX_BASE}/company/uid/${uidClean}`, {
-				headers: { Accept: "application/json" },
-				next: { revalidate: 86400 }, // Cache 24h
+				headers: baseHeaders,
+				next: { revalidate: 86400 },
 			});
 			if (res.ok) {
 				const data = await res.json();
@@ -55,12 +73,11 @@ async function searchZefix(query: string): Promise<ZefixCompany | null> {
 			}
 		}
 
-		// Search by name
 		const res = await fetch(`${ZEFIX_BASE}/company/search`, {
 			method: "POST",
 			headers: {
+				...baseHeaders,
 				"Content-Type": "application/json",
-				Accept: "application/json",
 			},
 			body: JSON.stringify({
 				name: normalizedQuery,
@@ -104,6 +121,14 @@ export async function searchCompanyAction(formData: FormData): Promise<CompanyRi
 
 	if (query.length < 3) {
 		return { success: false, error: "Bitte mindestens 3 Zeichen eingeben." };
+	}
+
+	// Check if ZEFIX credentials are configured
+	if (!process.env.ZEFIX_API_USER || !process.env.ZEFIX_API_PASSWORD) {
+		return {
+			success: false,
+			error: "Der Firmen-Check ist derzeit nicht verfügbar. Die ZEFIX-API-Anbindung wird eingerichtet.",
+		};
 	}
 
 	const company = await searchZefix(query);
