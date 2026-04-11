@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
 import { Container } from "./Container";
+import { MobileMenu } from "./MobileMenu";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const navItems = [
@@ -15,6 +16,8 @@ export async function Header() {
 	const {
 		data: { user },
 	} = await supabase.auth.getUser();
+
+	const mobileUser = user ? { email: user.email ?? "" } : null;
 
 	return (
 		<header className="sticky top-0 z-50 border-b border-rappen-border/80 bg-rappen-cream/85 backdrop-blur-md">
@@ -40,8 +43,9 @@ export async function Header() {
 					</nav>
 
 					<div className="flex items-center gap-2">
+						{/* Desktop auth buttons */}
 						{user ? (
-							<Link href="/dashboard">
+							<Link href="/dashboard" className="hidden md:inline-block">
 								<Button size="sm" variant="primary">
 									Zum Dashboard
 								</Button>
@@ -50,17 +54,20 @@ export async function Header() {
 							<>
 								<Link
 									href="/login"
-									className="hidden text-sm font-medium text-rappen-charcoal/80 hover:text-rappen-charcoal sm:inline-block"
+									className="hidden text-sm font-medium text-rappen-charcoal/80 hover:text-rappen-charcoal md:inline-block"
 								>
 									Anmelden
 								</Link>
-								<Link href="/register">
+								<Link href="/register" className="hidden md:inline-block">
 									<Button size="sm" variant="primary">
 										Kostenlos starten
 									</Button>
 								</Link>
 							</>
 						)}
+
+						{/* Mobile menu */}
+						<MobileMenu user={mobileUser} />
 					</div>
 				</div>
 			</Container>

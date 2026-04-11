@@ -9,24 +9,23 @@ const footerSections = [
 			{ href: "/tools", label: "Tools" },
 			{ href: "/pricing", label: "Preise" },
 			{ href: "/docs", label: "API-Dokumentation" },
-			{ href: "/changelog", label: "Changelog" },
 		],
 	},
 	{
-		title: "Tools",
+		title: "Kostenlose Tools",
 		links: [
 			{ href: "/tools/qr-rechnung", label: "QR-Rechnung" },
 			{ href: "/tools/lohnrechner", label: "Lohnrechner" },
 			{ href: "/tools/quellensteuer", label: "Quellensteuer" },
-			{ href: "/tools/mwst-rechner", label: "MWST-Rechner" },
 		],
 	},
 	{
-		title: "Unternehmen",
+		title: "Weitere Tools",
 		links: [
-			{ href: "/about", label: "Über uns" },
-			{ href: "/contact", label: "Kontakt" },
-			{ href: "/blog", label: "Blog" },
+			{ href: "/tools/mwst-rechner", label: "MWST-Rechner" },
+			{ href: "/tools/vertraege", label: "Verträge" },
+			{ href: "/tools/lohngleichheit", label: "Lohngleichheit" },
+			{ href: "/tools/firmen-check", label: "Firmen-Check" },
 		],
 	},
 	{
@@ -35,6 +34,7 @@ const footerSections = [
 			{ href: "/legal/agb", label: "AGB" },
 			{ href: "/legal/datenschutz", label: "Datenschutz" },
 			{ href: "/legal/impressum", label: "Impressum" },
+			{ href: "/contact", label: "Kontakt" },
 		],
 	},
 ] as const;

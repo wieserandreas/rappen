@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Background circle (dark charcoal ring) -->
+  <circle cx="32" cy="32" r="30" fill="#0a0a0a"/>
+  <!-- Inner coin face -->
+  <circle cx="32" cy="32" r="24" fill="#0a0a0a" stroke="#c5a55a" stroke-width="2.5"/>
+  <!-- Inner ring detail -->
+  <circle cx="32" cy="32" r="20" fill="none" stroke="#c5a55a" stroke-width="0.75" opacity="0.4"/>
+  <!-- Letter R in gold -->
+  <text x="32" y="43" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-weight="700" font-size="30" fill="#c5a55a" letter-spacing="-1">R</text>
+</svg>

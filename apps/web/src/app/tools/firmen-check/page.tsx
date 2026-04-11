@@ -15,8 +15,10 @@ export default function FirmenCheckPage() {
 			<Container size="wide">
 				<ToolHeader
 					title="Firmen-Check"
+					slug="firmen-check"
 					description="Risiko-Score aus ZEFIX, SHAB und UID-Register."
 					tier={2}
+					legalBasis="ZEFIX · SHAB · UID-Register"
 				/>
 				<div className="mt-12">
 					<CompanySearchForm />

@@ -76,3 +76,13 @@ button, a, input, select, textarea {
 ::-webkit-scrollbar-thumb:hover {
 	background: rgba(0, 0, 0, 0.25);
 }
+
+/* Mobile menu slide-in animation */
+@keyframes mobile-menu-slide {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}

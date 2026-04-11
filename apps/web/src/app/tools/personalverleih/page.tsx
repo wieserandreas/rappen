@@ -15,8 +15,10 @@ export default function PersonalverleihPage() {
 			<Container size="wide">
 				<ToolHeader
 					title="Personalverleih"
+					slug="personalverleih"
 					description="AVG-Compliance: Lizenz, Kaution, Einsatzdauer und Equal Pay."
 					tier={2}
+					legalBasis="AVG Art. 12–22"
 				/>
 				<div className="mt-12">
 					<TempStaffingForm />

@@ -15,8 +15,10 @@ export default function GrenzgaengerPage() {
 			<Container size="wide">
 				<ToolHeader
 					title="Grenzgänger"
+					slug="grenzgaenger"
 					description="DBA-Analyse, Telework-Schwellen und Sozialversicherungs-Koordination."
 					tier={2}
+					legalBasis="VO 883/2004 · DBA CH-DE/FR/IT/AT"
 				/>
 				<div className="mt-12">
 					<CrossBorderForm />

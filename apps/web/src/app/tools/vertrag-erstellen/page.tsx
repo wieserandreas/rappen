@@ -15,8 +15,10 @@ export default function VertragErstellenPage() {
 			<Container size="wide">
 				<ToolHeader
 					title="Vertragsgenerator"
+					slug="vertrag-erstellen"
 					description="10 Vertragstypen nach Schweizer Obligationenrecht (OR)."
 					tier={2}
+					legalBasis="OR Art. 319–827"
 				/>
 				<div className="mt-12">
 					<ContractForm />

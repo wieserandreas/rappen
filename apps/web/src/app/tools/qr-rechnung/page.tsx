@@ -15,9 +15,11 @@ export default function QrRechnungPage() {
 			<Container size="wide">
 				<ToolHeader
 					title="QR-Rechnung"
+					slug="qr-rechnung"
 					description="Erstellen und validieren Sie Schweizer QR-Rechnungen nach SIX-Standard v2.3."
 					tier={0}
 					limit="3 Rechnungen pro Tag"
+					legalBasis="SIX QR-Bill v2.3"
 				/>
 				<div className="mt-12">
 					<QrBillForm />

@@ -15,8 +15,10 @@ export default function ArbeitszeitCheckPage() {
 			<Container size="wide">
 				<ToolHeader
 					title="Arbeitszeit-Check"
+					slug="arbeitszeit-check"
 					description="Compliance-Prüfung gegen das Arbeitsgesetz (ArG) Art. 9–36."
 					tier={2}
+					legalBasis="ArG Art. 9–36"
 				/>
 				<div className="mt-12">
 					<WorktimeForm />

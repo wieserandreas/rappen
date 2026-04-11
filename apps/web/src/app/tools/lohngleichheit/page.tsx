@@ -15,8 +15,10 @@ export default function LohngleichheitPage() {
 			<Container size="wide">
 				<ToolHeader
 					title="Lohngleichheit"
+					slug="lohngleichheit"
 					description="Logib-konforme Analyse mit Blinder-Oaxaca-Regression nach GlG Art. 13."
 					tier={2}
+					legalBasis="GlG Art. 13 · Logib (EBG)"
 				/>
 				<div className="mt-12">
 					<PayEquityForm />

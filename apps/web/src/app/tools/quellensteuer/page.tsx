@@ -15,9 +15,11 @@ export default function QuellensteuerPage() {
 			<Container size="wide">
 				<ToolHeader
 					title="Quellensteuer"
+					slug="quellensteuer"
 					description="Berechnung der Quellensteuer mit Tarifen A–H, Kirchensteuer und 13. Monatslohn."
 					tier={1}
 					limit="10 Berechnungen pro Tag (Gratis Account)"
+					legalBasis="DBG Art. 83–86 · ESTV 2026"
 				/>
 				<div className="mt-12">
 					<QstForm />

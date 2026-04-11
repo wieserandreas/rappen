@@ -15,9 +15,11 @@ export default function LohnrechnerPage() {
 			<Container size="wide">
 				<ToolHeader
 					title="Lohnrechner"
+					slug="lohnrechner"
 					description="Vollständige Lohnabrechnung mit allen Sozialabgaben und Familienzulagen für die Schweiz."
 					tier={1}
 					limit="10 Berechnungen pro Tag (Gratis Account)"
+					legalBasis="AHVG · BVG · UVG · FamZG"
 				/>
 				<div className="mt-12">
 					<PayrollForm />

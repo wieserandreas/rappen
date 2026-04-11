@@ -15,8 +15,10 @@ export default function MwstRechnerPage() {
 			<Container size="wide">
 				<ToolHeader
 					title="MWST-Rechner"
+					slug="mwst-rechner"
 					description="Effektive und Saldosteuersatz-Methode mit Bezugsteuer und Optimierungstipps."
 					tier={2}
+					legalBasis="MWSTG Art. 25, 28, 37, 45"
 				/>
 				<div className="mt-12">
 					<VatForm />
