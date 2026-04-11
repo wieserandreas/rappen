@@ -199,14 +199,14 @@ export default async function DashboardPage() {
 					</div>
 				)}
 
-				{/* API Keys teaser */}
-				<div className="mt-10 rounded-xl border border-dashed border-rappen-border bg-rappen-cream/30 p-8 text-center">
+				{/* API Docs link */}
+				<div className="mt-10 rounded-xl border border-rappen-border bg-white p-8 text-center">
 					<h3 className="text-base font-semibold text-rappen-charcoal">
 						API-Integration
 					</h3>
 					<p className="mt-2 text-sm text-rappen-muted max-w-md mx-auto">
-						Nutzen Sie die Rappen APIs direkt in Ihrer Software. API-Keys,
-						Usage-Tracking und Webhooks werden bald verfügbar sein.
+						Integrieren Sie die Rappen APIs direkt in Ihre Software.
+						Authentifizierung via API-Key, JSON-Responses, alle 26 Kantone.
 					</p>
 					<Link href="/docs">
 						<Button variant="outline" size="sm" className="mt-4">

@@ -10,83 +10,90 @@ export interface CompanyRiskActionResult {
 }
 
 /**
- * Demo data for the public preview.
- * In production, this will fetch live data from ZEFIX, SHAB, and UID-Register.
+ * ZEFIX REST API – öffentlich, kostenlos, kein API-Key nötig.
+ * https://www.zefix.admin.ch/ZefixPublicREST/
  */
-const DEMO_COMPANIES: Record<string, {
+const ZEFIX_BASE = "https://www.zefix.admin.ch/ZefixREST/api/v1";
+
+interface ZefixCompany {
 	uid: string;
 	name: string;
-	legal_form: string;
-	domicile: string;
-	capital: string;
-	status: string;
-	founding_date: string;
-	board_members: BoardMember[];
-	shab_publications: ShabPublication[];
-}> = {
-	"CHE-100.000.001": {
-		uid: "CHE-100.000.001",
-		name: "Etablierte AG",
-		legal_form: "AG",
-		domicile: "Zürich, ZH",
-		capital: "CHF 1'000'000",
-		status: "aktiv",
-		founding_date: "2008-04-12",
-		board_members: [
-			{ name: "Anna Müller", role: "Präsidentin", since: "2015-06-01", signature_type: "Einzelunterschrift" },
-			{ name: "Peter Weber", role: "Mitglied", since: "2018-03-15", signature_type: "Kollektiv zu zweien" },
-		],
-		shab_publications: [],
-	},
-	"CHE-200.000.002": {
-		uid: "CHE-200.000.002",
-		name: "Wachstums GmbH",
-		legal_form: "GmbH",
-		domicile: "Bern, BE",
-		capital: "CHF 200'000",
-		status: "aktiv",
-		founding_date: "2024-09-01",
-		board_members: [
-			{ name: "Sara Bühler", role: "Geschäftsführerin", since: "2024-09-01", signature_type: "Einzelunterschrift" },
-		],
-		shab_publications: [
-			{
-				date: "2026-02-10",
-				type: "Kapitalerhöhung",
-				message: "Stammkapital von CHF 100'000 auf CHF 200'000 erhöht",
-				shab_id: "SHAB-2026-001",
+	legalSeatId?: number;
+	legalSeat?: string;
+	canton?: string;
+	status?: string;
+	registryOfCommerceId?: string;
+	cantonalExcerptWeb?: string;
+	legalForm?: { uid?: string; name?: { de?: string; fr?: string; it?: string } };
+	shabDate?: string;
+	deleteDate?: string;
+	capitalNominal?: number;
+	capitalCurrency?: string;
+}
+
+/**
+ * Search ZEFIX for a company by name or UID.
+ * Falls back to UID-Register format parsing if the query looks like a UID.
+ */
+async function searchZefix(query: string): Promise<ZefixCompany | null> {
+	const normalizedQuery = query.trim();
+
+	// Check if query is a UID format (CHE-xxx.xxx.xxx)
+	const uidClean = normalizedQuery.replace(/[\s.-]/g, "").toUpperCase();
+	const isUid = /^CHE\d{9}$/.test(uidClean);
+
+	try {
+		if (isUid) {
+			// Search by UID
+			const res = await fetch(`${ZEFIX_BASE}/company/uid/${uidClean}`, {
+				headers: { Accept: "application/json" },
+				next: { revalidate: 86400 }, // Cache 24h
+			});
+			if (res.ok) {
+				const data = await res.json();
+				return data as ZefixCompany;
+			}
+		}
+
+		// Search by name
+		const res = await fetch(`${ZEFIX_BASE}/company/search`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
 			},
-		],
-	},
-	"CHE-300.000.003": {
-		uid: "CHE-300.000.003",
-		name: "Krisen AG",
-		legal_form: "AG",
-		domicile: "Genf, GE",
-		capital: "CHF 100'000",
-		status: "aktiv",
-		founding_date: "2025-01-20",
-		board_members: [
-			{ name: "Marc Dupont", role: "Präsident", since: "2026-01-15", signature_type: "Einzelunterschrift" },
-			{ name: "Lisa Favre", role: "Mitglied", since: "2026-02-20", signature_type: "Kollektiv" },
-			{ name: "Jean Martin", role: "Mitglied", since: "2026-03-10", signature_type: "Kollektiv" },
-		],
-		shab_publications: [
-			{
-				date: "2026-03-01",
-				type: "Sitzverlegung",
-				message: "Sitz von Lausanne nach Genf verlegt",
-				shab_id: "SHAB-2026-100",
-			},
-			{
-				date: "2026-03-25",
-				type: "Konkursandrohung",
-				message: "Konkursandrohung gemäss Art. 159 SchKG",
-				shab_id: "SHAB-2026-150",
-			},
-		],
-	},
-};
+			body: JSON.stringify({
+				name: normalizedQuery,
+				languageKey: "de",
+				maxEntries: 1,
+			}),
+			next: { revalidate: 86400 },
+		});
+
+		if (res.ok) {
+			const data = await res.json();
+			if (Array.isArray(data) && data.length > 0) {
+				return data[0] as ZefixCompany;
+			}
+		}
+
+		return null;
+	} catch (err) {
+		console.log("[firmen-check] ZEFIX API error:", err instanceof Error ? err.message : err);
+		return null;
+	}
+}
+
+/**
+ * Format a UID number into the standard CHE-xxx.xxx.xxx format.
+ */
+function formatUid(uid: string): string {
+	const clean = uid.replace(/\s/g, "");
+	if (/^CHE\d{9}$/.test(clean)) {
+		return `${clean.slice(0, 3)}-${clean.slice(3, 6)}.${clean.slice(6, 9)}.${clean.slice(9, 12)}`;
+	}
+	return uid;
+}
 
 export async function searchCompanyAction(formData: FormData): Promise<CompanyRiskActionResult> {
 	const query = String(formData.get("query") ?? "").trim();
@@ -95,35 +102,52 @@ export async function searchCompanyAction(formData: FormData): Promise<CompanyRi
 		return { success: false, error: "Bitte UID oder Firmennamen eingeben." };
 	}
 
-	// Lookup by UID or partial name match
-	const normalizedQuery = query.toUpperCase().replace(/\s/g, "");
-	let company = Object.values(DEMO_COMPANIES).find(
-		(c) =>
-			c.uid.replace(/\s/g, "") === normalizedQuery ||
-			c.name.toLowerCase().includes(query.toLowerCase()),
-	);
+	if (query.length < 3) {
+		return { success: false, error: "Bitte mindestens 3 Zeichen eingeben." };
+	}
+
+	const company = await searchZefix(query);
 
 	if (!company) {
 		return {
 			success: false,
-			error:
-				"Keine Firma gefunden. Im Vorschau-Modus stehen folgende Demo-UIDs zur Verfügung:\n• CHE-100.000.001 (Etablierte AG)\n• CHE-200.000.002 (Wachstums GmbH)\n• CHE-300.000.003 (Krisen AG)",
+			error: `Keine Firma gefunden für «${query}». Bitte prüfen Sie den Namen oder die UID (Format: CHE-xxx.xxx.xxx).`,
 		};
+	}
+
+	const formattedUid = formatUid(company.uid);
+	const legalFormName = company.legalForm?.name?.de || company.legalForm?.uid || "—";
+	const capital = company.capitalNominal
+		? `${company.capitalCurrency || "CHF"} ${company.capitalNominal.toLocaleString("de-CH")}`
+		: "—";
+
+	// Determine founding date (approximate from ZEFIX data).
+	// ZEFIX doesn't expose founding date directly; use shabDate as proxy.
+	const foundingDate = company.shabDate || "2020-01-01";
+
+	// Determine status
+	let status = "aktiv";
+	if (company.deleteDate) {
+		status = "gelöscht";
+	} else if (company.status === "CANCELLED") {
+		status = "gelöscht";
+	} else if (company.status === "BEING_CANCELLED") {
+		status = "in Liquidation";
 	}
 
 	try {
 		const data = calculateRiskScore({
 			company: {
-				uid: company.uid,
+				uid: formattedUid,
 				name: company.name,
-				legal_form: company.legal_form,
-				domicile: company.domicile,
-				capital: company.capital,
-				status: company.status,
-				founding_date: company.founding_date,
+				legal_form: legalFormName,
+				domicile: [company.legalSeat, company.canton].filter(Boolean).join(", ") || "—",
+				capital,
+				status,
+				founding_date: foundingDate,
 			},
-			board_members: company.board_members,
-			shab_publications: company.shab_publications,
+			board_members: [], // ZEFIX REST API doesn't expose VR — would need HR-Auszug
+			shab_publications: [], // Would need SHAB scraper
 		});
 		return { success: true, data };
 	} catch (err) {

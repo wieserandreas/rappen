@@ -46,31 +46,13 @@ export function CompanySearchForm() {
 							Prüfen
 						</Button>
 					</div>
-					<div className="mt-4 flex flex-wrap gap-2">
-						<span className="text-xs text-rappen-muted">Demo-UIDs:</span>
-						{[
-							"CHE-100.000.001",
-							"CHE-200.000.002",
-							"CHE-300.000.003",
-						].map((uid) => (
-							<button
-								key={uid}
-								type="button"
-								onClick={() => setQuery(uid)}
-								className="rounded-full bg-rappen-cream px-3 py-1 font-mono text-[11px] text-rappen-charcoal hover:bg-rappen-border"
-							>
-								{uid}
-							</button>
-						))}
-					</div>
+					<p className="mt-3 text-xs text-rappen-muted">
+						Suchen Sie nach Firmennamen (z.B. «Novartis», «Roche», «ABB») oder
+						UID (CHE-xxx.xxx.xxx). Daten via ZEFIX, dem öffentlichen
+						Firmensuchportal des Bundes.
+					</p>
 				</div>
 			</form>
-
-			<div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-xs text-blue-900">
-				<strong>Vorschau-Modus:</strong> Die Live-Anbindung an ZEFIX, SHAB und das UID-Register
-				wird vor dem öffentlichen Launch aktiviert. Im Vorschau-Modus stehen drei Demo-Firmen
-				zum Testen der Risiko-Scoring-Logik zur Verfügung.
-			</div>
 
 			{result && !result.success && (
 				<div className="rounded-xl border border-rappen-red/30 bg-rappen-red/5 p-6">

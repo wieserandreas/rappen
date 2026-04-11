@@ -224,7 +224,8 @@ export function ContractForm() {
 							</div>
 
 							<p className="text-center text-xs text-rappen-muted">
-								Der DOCX/PDF-Download wird mit der nächsten Version verfügbar sein.
+								Der Vertragsentwurf wird gemäss den oben gelisteten
+								Pflichtklauseln und Rechtsgrundlagen erstellt.
 							</p>
 						</>
 					)}

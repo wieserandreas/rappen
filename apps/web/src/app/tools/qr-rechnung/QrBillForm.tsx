@@ -250,8 +250,8 @@ export function QrBillForm() {
 								</div>
 
 								<p className="text-xs text-rappen-muted">
-									Der vollständige PDF-Download mit Swiss QR-Code wird in der
-									nächsten Version verfügbar sein.
+									Die QR-Daten entsprechen dem SIX SPC v2.3 Standard und
+									können direkt in QR-Code-Generatoren verwendet werden.
 								</p>
 							</div>
 						)}

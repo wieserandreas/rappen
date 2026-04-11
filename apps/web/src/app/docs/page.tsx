@@ -194,7 +194,7 @@ export default function DocsPage() {
 						{apis.map((api) => (
 							<Link
 								key={api.slug}
-								href="#"
+								href={`/docs/${api.slug}`}
 								className="group flex flex-col bg-white p-6 hover:bg-rappen-cream/50"
 							>
 								<div className="flex items-baseline gap-3">
